@@ -1,0 +1,11 @@
+card_status: ACTIVE, INACTIVE, BLOCKED, EXPIRED
+daily_usage: within, boundary, over
+monthly_usage: within, boundary, over
+balance_usage: within, boundary, over
+expiry_state: future, current, past
+terminal_type: POS, ATM, ECOM
+mcc: grocery, restaurant, fuel, hotel
+
+IF [card_status] <> "ACTIVE" THEN [daily_usage] = "within"
+    AND [monthly_usage] = "within" AND [balance_usage] = "within";
+IF [expiry_state] = "past" THEN [balance_usage] = "within";

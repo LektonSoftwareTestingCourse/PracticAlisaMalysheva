@@ -1,0 +1,11 @@
+page_size: default, one, ten, hundred
+offset_pos: zero, inside, at_end, beyond
+status_filter: none, ACTIVE, INACTIVE, BLOCKED
+bin_filter: none, match, mismatch
+matching_count: zero, one, many
+has_deleted: no, yes
+
+IF [bin_filter] = "mismatch" THEN [matching_count] = "zero";
+IF [matching_count] = "zero" THEN [offset_pos] <> "inside"
+    AND [offset_pos] <> "at_end";
+IF [matching_count] = "one" THEN [offset_pos] <> "inside";
