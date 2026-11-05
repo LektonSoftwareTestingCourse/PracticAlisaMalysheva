@@ -121,7 +121,7 @@ class AuthServiceImplTest {
 
             // Assert
             assertThat(response.status()).isEqualTo("DECLINED");
-            assertThat(response.declineReason()).isNotEqualTo("APPROVED");
+            assertThat(response.declineReason()).isNotBlank();
             verify(eventNotifier).notify(any(AuthorizationEvent.class));
         }
 
