@@ -111,7 +111,9 @@ class CardServiceImplTest {
     }
 
     @Test
-    @DisplayName("создаёт одну карту и уведомляет о создании")
+    @DisplayName("Если для BIN 400000 определён идентификатор эмитента ISS001 и генерируется PAN 4000001234567890 и карта"
+            + " сохраняется в репозитории, то создаётся карта, совпадающая с ожидаемой, вызывается сохранение в репозитории и"
+            + " отправляется событие CardEvent")
     void shouldCreateCard() {
         // Arrange
         Card expected = activeCard();
@@ -130,7 +132,8 @@ class CardServiceImplTest {
     }
 
     @Test
-    @DisplayName("создаёт несколько карт пачкой")
+    @DisplayName("Если генерируется PAN 4000001234567890, для BIN 400000 определён эмитент ISS001 и пакетно сохраняются две"
+            + " активные карты, то создаются две карты и отправляется событие CardEvent")
     void shouldCreateMultipleCards() {
         // Arrange
         Card card1 = activeCard();
@@ -151,7 +154,8 @@ class CardServiceImplTest {
     }
 
     @Test
-    @DisplayName("создаёт карты поштучно при коллизии пакетного сохранения")
+    @DisplayName("Если пакетное сохранение карт падает с MassiveCardCreationCollisionException и поштучное сохранение карты"
+            + " успешно, то создаётся одна карта")
     void shouldCreateCardsIndividuallyOnCollision() {
         // Arrange
         Card card = activeCard();
@@ -170,7 +174,7 @@ class CardServiceImplTest {
     }
 
     @Test
-    @DisplayName("возвращает карту по PAN")
+    @DisplayName("Если карта с PAN 4000001234567890 найдена в репозитории, то возвращается именно эта карта")
     void shouldGetCardByPan() {
         Card card = activeCard();
         when(cardRepository.findByPan(PAN)).thenReturn(Optional.of(card));
@@ -179,7 +183,7 @@ class CardServiceImplTest {
     }
 
     @Test
-    @DisplayName("бросает CardNotFoundException, если карта не найдена")
+    @DisplayName("Если карта с PAN 4000001234567890 не найдена в репозитории, то бросается CardNotFoundException")
     void shouldThrowWhenCardNotFound() {
         when(cardRepository.findByPan(PAN)).thenReturn(Optional.empty());
 
@@ -187,14 +191,15 @@ class CardServiceImplTest {
     }
 
     @Test
-    @DisplayName("бросает TooLargeLimitException, если лимит страницы превышен")
+    @DisplayName("Если запрошен лимит страницы 101, превышающий максимальный лимит 100, то бросается TooLargeLimitException")
     void shouldThrowWhenPageLimitTooLarge() {
         assertThatThrownBy(() -> service.getCards(101, null, null, null, null, null, null))
                 .isInstanceOf(TooLargeLimitException.class);
     }
 
     @Test
-    @DisplayName("использует значения по умолчанию для пагинации")
+    @DisplayName("Если параметры пагинации не указаны и по умолчанию лимит страницы равен 10 и смещение равно 0, то репозиторий"
+            + " ищет карты с этими значениями и возвращается одна карта")
     void shouldUseDefaultPagination() {
         when(defaults.pageLimit()).thenReturn(10);
         when(defaults.pageOffset()).thenReturn(0L);
@@ -207,7 +212,8 @@ class CardServiceImplTest {
     }
 
     @Test
-    @DisplayName("частично обновляет карту")
+    @DisplayName("Если карта с PAN 4000001234567890 найдена для обновления и обновление возвращает переданную карту, то дневной"
+            + " лимит становится 50, статус остаётся ACTIVE и отправляется событие CardEvent")
     void shouldPatchCard() {
         // Arrange
         Card existing = activeCard();
@@ -224,7 +230,7 @@ class CardServiceImplTest {
     }
 
     @Test
-    @DisplayName("бросает CardNotFoundException при обновлении несуществующей карты")
+    @DisplayName("Если карта с PAN 4000001234567890 не найдена для обновления, то при обновлении бросается CardNotFoundException")
     void shouldThrowWhenPatchingMissingCard() {
         when(cardRepository.findByPanForUpdate(PAN)).thenReturn(Optional.empty());
 
@@ -233,7 +239,8 @@ class CardServiceImplTest {
     }
 
     @Test
-    @DisplayName("удаляет карту")
+    @DisplayName("Если карта с PAN 4000001234567890 найдена для обновления и обновление возвращает переданную карту, то при"
+            + " удалении вызывается обновление в репозитории и отправляется событие CardEvent")
     void shouldDeleteCard() {
         when(cardRepository.findByPanForUpdate(PAN)).thenReturn(Optional.of(activeCard()));
         when(cardRepository.update(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -245,7 +252,9 @@ class CardServiceImplTest {
     }
 
     @Test
-    @DisplayName("резервирует средства на активной карте")
+    @DisplayName("Если карта с PAN 4000001234567890 активна, RRN 012345678901 уникален, сохранение резервирования и обновление"
+            + " карты возвращают переданные объекты и резервируется сумма 100, то доступный баланс становится 900 и"
+            + " отправляется событие CardEvent")
     void shouldReserveFunds() {
         // Arrange
         when(cardRepository.findByPanForUpdate(PAN)).thenReturn(Optional.of(activeCard()));
@@ -262,7 +271,8 @@ class CardServiceImplTest {
     }
 
     @Test
-    @DisplayName("отклоняет резервирование при нехватке средств")
+    @DisplayName("Если карта с PAN 4000001234567890 активна, но её баланс 50 меньше резервируемой суммы 100, то при"
+            + " резервировании бросается InsufficientFundsException")
     void shouldRejectReservationWhenInsufficientFunds() {
         when(cardRepository.findByPanForUpdate(PAN)).thenReturn(Optional.of(activeCardWithBalance("50")));
 
@@ -271,7 +281,8 @@ class CardServiceImplTest {
     }
 
     @Test
-    @DisplayName("отклоняет резервирование, если RRN уже существует")
+    @DisplayName("Если карта с PAN 4000001234567890 активна, но RRN 012345678901 уже зарегистрирован, то при резервировании"
+            + " бросается ReservationAlreadyExistsException")
     void shouldRejectReservationWhenRrnNotUnique() {
         when(cardRepository.findByPanForUpdate(PAN)).thenReturn(Optional.of(activeCard()));
         when(reservationRepository.isUnique(RRN, PAN)).thenReturn(false);
@@ -281,7 +292,8 @@ class CardServiceImplTest {
     }
 
     @Test
-    @DisplayName("бросает CardNotFoundException при резервировании на несуществующей карте")
+    @DisplayName("Если карта с PAN 4000001234567890 не найдена для обновления, то при резервировании бросается"
+            + " CardNotFoundException")
     void shouldThrowWhenReservingMissingCard() {
         when(cardRepository.findByPanForUpdate(PAN)).thenReturn(Optional.empty());
 
@@ -290,7 +302,9 @@ class CardServiceImplTest {
     }
 
     @Test
-    @DisplayName("возвращает средства на карту")
+    @DisplayName("Если карта с PAN 4000001234567890 активна, резервирование с RRN 012345678901 найдено и сохранение отката,"
+            + " резервирования и обновление карты возвращают переданные объекты, то при возврате суммы 100 доступный баланс"
+            + " становится 1100 и отправляется событие CardEvent")
     void shouldRollbackFunds() {
         // Arrange
         Reservation reservation = new Reservation(PAN, AMOUNT, RRN);
@@ -309,7 +323,8 @@ class CardServiceImplTest {
     }
 
     @Test
-    @DisplayName("бросает ReservationNotFoundException, если резервирование не найдено")
+    @DisplayName("Если карта с PAN 4000001234567890 активна, но резервирование с RRN 012345678901 не найдено, то при возврате"
+            + " средств бросается ReservationNotFoundException")
     void shouldThrowWhenReservationNotFound() {
         when(cardRepository.findByPanForUpdate(PAN)).thenReturn(Optional.of(activeCard()));
         when(reservationRepository.findByRrnAndPanForUpdate(RRN, PAN)).thenReturn(Optional.empty());
@@ -319,7 +334,8 @@ class CardServiceImplTest {
     }
 
     @Test
-    @DisplayName("бросает RollbackAlreadySatisfiedException при повторном возврате")
+    @DisplayName("Если карта с PAN 4000001234567890 активна и резервирование с RRN 012345678901 уже имеет статус ROLLED_BACK, то"
+            + " при повторном возврате бросается RollbackAlreadySatisfiedException")
     void shouldThrowWhenRollbackAlreadySatisfied() {
         // Arrange
         Reservation rolledBack = new Reservation(
@@ -333,7 +349,8 @@ class CardServiceImplTest {
     }
 
     @Test
-    @DisplayName("обновляет статус карт по списку BIN")
+    @DisplayName("Если по списку BIN 400000 найдена одна карта и обновление возвращает переданную карту, то при массовом переводе"
+            + " в статус BLOCKED обновляется одна карта")
     void shouldBulkUpdateStatusByBins() {
         Card card = activeCard();
         when(cardRepository.findCardsByBinsForUpdate(List.of(BIN))).thenReturn(List.of(card));
@@ -345,7 +362,8 @@ class CardServiceImplTest {
     }
 
     @Test
-    @DisplayName("обновляет статус карт по списку PAN")
+    @DisplayName("Если по списку PAN 4000001234567890 найдена одна карта и обновление возвращает переданную карту, то при"
+            + " массовом переводе в статус BLOCKED обновляется одна карта")
     void shouldBulkUpdateStatusByPans() {
         Card card = activeCard();
         when(cardRepository.findCardsByPansForUpdate(List.of(PAN))).thenReturn(List.of(card));
@@ -357,21 +375,22 @@ class CardServiceImplTest {
     }
 
     @Test
-    @DisplayName("бросает IllegalArgumentException, если не указаны ни BIN, ни PAN")
+    @DisplayName("Если при массовом обновлении статуса не указаны ни BIN, ни PAN, то бросается IllegalArgumentException")
     void shouldRejectBulkUpdateWithoutSelectors() {
         assertThatThrownBy(() -> service.bulkUpdateStatus(null, null, CardStatus.BLOCKED))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
-    @DisplayName("бросает IllegalArgumentException, если указаны и BIN, и PAN")
+    @DisplayName("Если при массовом обновлении статуса указаны одновременно и BIN 400000, и PAN 4000001234567890, то бросается"
+            + " IllegalArgumentException")
     void shouldRejectBulkUpdateWithBothSelectors() {
         assertThatThrownBy(() -> service.bulkUpdateStatus(List.of(BIN), List.of(PAN), CardStatus.BLOCKED))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
-    @DisplayName("подсчитывает все карты и уведомляет")
+    @DisplayName("Если в репозитории всего 5 карт, то подсчёт всех карт возвращает 5 и отправляется событие CardEvent")
     void shouldCountAllCards() {
         when(cardRepository.countAllCards()).thenReturn(5L);
 
@@ -382,7 +401,8 @@ class CardServiceImplTest {
     }
 
     @Test
-    @DisplayName("считает карты с фильтрами")
+    @DisplayName("Если при фильтрации по статусу ACTIVE, BIN 400000 и эмитенту ISS001 в репозитории насчитано 3 карты, то"
+            + " возвращается 3")
     void shouldCountFilteredCards() {
         when(cardRepository.countCardsFiltered(any(), any(), any(), any(), any())).thenReturn(3L);
 

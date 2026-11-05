@@ -89,7 +89,9 @@ class AuthServiceImplTest {
     class AuthorizeCardChecks {
 
         @Test
-        @DisplayName("одобряет авторизацию для активной карты с достаточными средствами")
+        @DisplayName("Если карта активна (getCard возвращает ACTIVE), issuerId найден, "
+                + "upsert лимитов вернул 1 и блок RRN свободен, то статус APPROVED, "
+                + "rrn и authCode непустые, вызываются reserve(PAN) и notify(event)")
         void shouldApproveAuthorizationWhenCardIsActiveAndSufficientFunds() {
             // Arrange
             when(cardManagementClient.getCard(PAN)).thenReturn(activeCard());
@@ -110,7 +112,9 @@ class AuthServiceImplTest {
 
         @ParameterizedTest(name = "status={0}")
         @EnumSource(value = CardModelStatus.class, mode = EnumSource.Mode.EXCLUDE, names = {"ACTIVE"})
-        @DisplayName("отклоняет авторизацию для неактивного статуса карты")
+        @DisplayName("Если статус карты один из не-ACTIVE (INACTIVE/BLOCKED/EXPIRED) "
+                + "и issuerId найден, то статус DECLINED, declineReason непустой "
+                + "и вызывается notify(event)")
         void shouldDeclineWhenCardStatusIsNotActive(CardModelStatus status) {
             // Arrange
             when(cardManagementClient.getCard(PAN)).thenReturn(cardWithStatus(status));
@@ -126,7 +130,8 @@ class AuthServiceImplTest {
         }
 
         @Test
-        @DisplayName("отклоняет авторизацию, если у карты нет статуса")
+        @DisplayName("Если у карты статус отсутствует (null) и issuerId найден, "
+                + "то статус DECLINED и declineReason равен UNKNOWN_REASON")
         void shouldDeclineWhenCardStatusIsNull() {
             // Arrange
             when(cardManagementClient.getCard(PAN))
@@ -142,7 +147,8 @@ class AuthServiceImplTest {
         }
 
         @Test
-        @DisplayName("отклоняет авторизацию, если срок действия карты истёк")
+        @DisplayName("Если срок действия активной карты истёк (expiry в прошлом) "
+                + "и issuerId найден, то declineReason равен CARD_EXPIRED и reserve не вызывается")
         void shouldDeclineWhenCardIsExpiredByDate() {
             // Arrange
             when(cardManagementClient.getCard(PAN))
@@ -158,7 +164,9 @@ class AuthServiceImplTest {
         }
 
         @Test
-        @DisplayName("отклоняет авторизацию при нехватке средств на балансе")
+        @DisplayName("Если баланс активной карты (500) меньше запрашиваемой суммы "
+                + "и issuerId найден, то declineReason равен INSUFFICIENT_FUNDS "
+                + "и reserve не вызывается")
         void shouldDeclineWhenBalanceIsInsufficient() {
             // Arrange
             when(cardManagementClient.getCard(PAN)).thenReturn(activeCardWithBalance(new BigDecimal("500")));
@@ -178,7 +186,8 @@ class AuthServiceImplTest {
     class AuthorizeGetCardExceptions {
 
         @Test
-        @DisplayName("отклоняет авторизацию, если карта не найдена")
+        @DisplayName("Если getCard бросает CardNotFoundException, то статус DECLINED, "
+                + "declineReason равен CARD_NOT_FOUND и вызывается notify(event)")
         void shouldDeclineWhenCardNotFound() {
             // Arrange
             when(cardManagementClient.getCard(PAN)).thenThrow(new CardNotFoundException(PAN));
@@ -193,7 +202,8 @@ class AuthServiceImplTest {
         }
 
         @Test
-        @DisplayName("отклоняет авторизацию при невалидном запросе getCard")
+        @DisplayName("Если getCard бросает InvalidGetCardRequestException, "
+                + "то declineReason равен CARD_NOT_FOUND")
         void shouldDeclineWhenGetCardRequestIsInvalid() {
             // Arrange
             when(cardManagementClient.getCard(PAN)).thenThrow(new InvalidGetCardRequestException("bad request"));
@@ -206,7 +216,9 @@ class AuthServiceImplTest {
         }
 
         @ParameterizedTest
-        @DisplayName("отклоняет авторизацию при недоступности Card Management")
+        @DisplayName("Если getCard бросает одну из ошибок недоступности "
+                + "(ServiceUnavailableException/ResourceAccessException/InternalCardManagerException/GetCardException), "
+                + "то declineReason равен SERVICE_UNAVAILABLE")
         @ValueSource(classes = {
                 ServiceUnavailableException.class,
                 ResourceAccessException.class,
@@ -226,7 +238,7 @@ class AuthServiceImplTest {
         }
 
         @Test
-        @DisplayName("отклоняет авторизацию как CARD_BLOCKED, если Card Management требует оплату")
+        @DisplayName("Если getCard бросает PaymentRequiredException, то declineReason равен CARD_BLOCKED")
         void shouldDeclineWhenPaymentIsRequired() {
             // Arrange
             when(cardManagementClient.getCard(PAN)).thenThrow(new PaymentRequiredException("payment required"));
@@ -239,7 +251,8 @@ class AuthServiceImplTest {
         }
 
         @Test
-        @DisplayName("отклоняет авторизацию с UNKNOWN_REASON при непредвиденной ошибке")
+        @DisplayName("Если getCard бросает непредвиденное исключение "
+                + "(например IllegalStateException), то declineReason равен UNKNOWN_REASON")
         void shouldDeclineWithUnknownReasonOnUnexpectedError() {
             // Arrange
             when(cardManagementClient.getCard(PAN)).thenThrow(new IllegalStateException("boom"));
@@ -257,7 +270,8 @@ class AuthServiceImplTest {
     class AuthorizeLimitsAndReservation {
 
         @Test
-        @DisplayName("отклоняет авторизацию при превышении лимита (upsert вернул 0)")
+        @DisplayName("Если карта активна, issuerId найден и upsert лимитов вернул 0, "
+                + "то declineReason равен EXCEEDS_AMOUNT_LIMIT и reserve не вызывается")
         void shouldDeclineWhenLimitsNotUpdated() {
             // Arrange
             when(cardManagementClient.getCard(PAN)).thenReturn(activeCard());
@@ -273,7 +287,10 @@ class AuthServiceImplTest {
         }
 
         @Test
-        @DisplayName("повторяет обновление лимитов при конфликте ключа и одобряет")
+        @DisplayName("Если карта активна, issuerId найден, upsert лимитов бросает "
+                + "DuplicateKeyException при первой попытке и возвращает 1 при повторной, "
+                + "а блок RRN свободен, то статус APPROVED "
+                + "и upsertLimitUsage вызывается дважды")
         void shouldRetryLimitsOnDuplicateKeyAndApprove() {
             // Arrange
             when(cardManagementClient.getCard(PAN)).thenReturn(activeCard());
@@ -292,7 +309,9 @@ class AuthServiceImplTest {
         }
 
         @Test
-        @DisplayName("возвращает DB_UNAVAILABLE, если повторная попытка лимитов не удалась")
+        @DisplayName("Если карта активна, issuerId найден, upsert лимитов бросает "
+                + "DuplicateKeyException и затем снова RuntimeException, "
+                + "то declineReason равен DB_UNAVAILABLE")
         void shouldReturnDbUnavailableWhenRetryFails() {
             // Arrange
             when(cardManagementClient.getCard(PAN)).thenReturn(activeCard());
@@ -309,7 +328,8 @@ class AuthServiceImplTest {
         }
 
         @Test
-        @DisplayName("возвращает DB_UNAVAILABLE при сбое обновления лимитов")
+        @DisplayName("Если карта активна, issuerId найден и upsert лимитов бросает "
+                + "RuntimeException, то declineReason равен DB_UNAVAILABLE")
         void shouldReturnDbUnavailableOnLimitFailure() {
             // Arrange
             when(cardManagementClient.getCard(PAN)).thenReturn(activeCard());
@@ -325,7 +345,8 @@ class AuthServiceImplTest {
         }
 
         @Test
-        @DisplayName("отклоняет авторизацию, если карта не найдена при резервировании")
+        @DisplayName("Если лимиты обновлены и блок RRN свободен, "
+                + "а reserve бросает CardNotFoundException, то declineReason равен CARD_NOT_FOUND")
         void shouldDeclineWhenReserveFailsCardNotFound() {
             // Arrange
             activeCardWithLimitsAndRrn();
@@ -339,7 +360,8 @@ class AuthServiceImplTest {
         }
 
         @Test
-        @DisplayName("отклоняет авторизацию при невалидном запросе резервирования")
+        @DisplayName("Если лимиты обновлены и блок RRN свободен, а reserve бросает "
+                + "InvalidReserveRequestException, то declineReason равен CARD_NOT_FOUND")
         void shouldDeclineWhenReserveRequestIsInvalid() {
             // Arrange
             activeCardWithLimitsAndRrn();
@@ -353,7 +375,8 @@ class AuthServiceImplTest {
         }
 
         @Test
-        @DisplayName("отклоняет авторизацию, если Card Management недоступен при резервировании")
+        @DisplayName("Если лимиты обновлены и блок RRN свободен, а reserve бросает "
+                + "ServiceUnavailableException, то declineReason равен SERVICE_UNAVAILABLE")
         void shouldDeclineWhenReserveServiceUnavailable() {
             // Arrange
             activeCardWithLimitsAndRrn();
@@ -367,7 +390,8 @@ class AuthServiceImplTest {
         }
 
         @Test
-        @DisplayName("отклоняет авторизацию при нехватке средств на резервировании")
+        @DisplayName("Если лимиты обновлены и блок RRN свободен, а reserve бросает "
+                + "InsufficientFundsException, то declineReason равен INSUFFICIENT_FUNDS")
         void shouldDeclineWhenReserveInsufficientFunds() {
             // Arrange
             activeCardWithLimitsAndRrn();
@@ -381,7 +405,8 @@ class AuthServiceImplTest {
         }
 
         @Test
-        @DisplayName("отклоняет авторизацию с RESERVATION_FAILED при ошибке резервирования")
+        @DisplayName("Если лимиты обновлены и блок RRN свободен, "
+                + "а reserve бросает ReserveException, то declineReason равен RESERVATION_FAILED")
         void shouldDeclineWhenReserveFails() {
             // Arrange
             activeCardWithLimitsAndRrn();
@@ -395,7 +420,9 @@ class AuthServiceImplTest {
         }
 
         @Test
-        @DisplayName("отклоняет авторизацию с UNKNOWN_REASON при непредвиденной ошибке резервирования")
+        @DisplayName("Если лимиты обновлены и блок RRN свободен, а reserve бросает "
+                + "непредвиденное исключение (например IllegalStateException), "
+                + "то declineReason равен UNKNOWN_REASON")
         void shouldDeclineWithUnknownReasonWhenReserveThrowsUnexpected() {
             // Arrange
             activeCardWithLimitsAndRrn();
@@ -414,7 +441,8 @@ class AuthServiceImplTest {
     class Rollback {
 
         @Test
-        @DisplayName("одобряет rollback при успешном откате")
+        @DisplayName("Если rollback запрос корректен и cardManagementClient.rollback успешен, "
+                + "то статус APPROVED и rollback(request) вызывается")
         void shouldApproveRollback() {
             // Arrange
             RollbackRequest request = new RollbackRequest(RRN, PAN, AMOUNT);
@@ -428,7 +456,8 @@ class AuthServiceImplTest {
         }
 
         @Test
-        @DisplayName("отклоняет rollback как TRANSACTION_NOT_FOUND, если карта не найдена")
+        @DisplayName("Если cardManagementClient.rollback бросает CardNotFoundException, "
+                + "то declineReason равен TRANSACTION_NOT_FOUND")
         void shouldDeclineRollbackWhenCardNotFound() {
             // Arrange
             RollbackRequest request = new RollbackRequest(RRN, PAN, AMOUNT);
@@ -442,7 +471,8 @@ class AuthServiceImplTest {
         }
 
         @Test
-        @DisplayName("отклоняет rollback как TRANSACTION_NOT_FOUND при невалидном запросе")
+        @DisplayName("Если cardManagementClient.rollback бросает InvalidRollbackRequestException, "
+                + "то declineReason равен TRANSACTION_NOT_FOUND")
         void shouldDeclineRollbackWhenRequestIsInvalid() {
             // Arrange
             RollbackRequest request = new RollbackRequest(RRN, PAN, AMOUNT);
@@ -456,7 +486,9 @@ class AuthServiceImplTest {
         }
 
         @ParameterizedTest
-        @DisplayName("отклоняет rollback при недоступности Card Management")
+        @DisplayName("Если cardManagementClient.rollback бросает одну из ошибок "
+                + "недоступности (ServiceUnavailableException/ResourceAccessException/"
+                + "InternalCardManagerException), то declineReason равен SERVICE_UNAVAILABLE")
         @ValueSource(classes = {
                 ServiceUnavailableException.class,
                 ResourceAccessException.class,
@@ -477,7 +509,8 @@ class AuthServiceImplTest {
         }
 
         @Test
-        @DisplayName("отклоняет rollback как ALREADY_ROLLED_BACK при конфликте")
+        @DisplayName("Если cardManagementClient.rollback бросает RollbackConflictException, "
+                + "то declineReason равен ALREADY_ROLLED_BACK")
         void shouldDeclineRollbackWhenAlreadyRolledBack() {
             // Arrange
             RollbackRequest request = new RollbackRequest(RRN, PAN, AMOUNT);
@@ -491,7 +524,8 @@ class AuthServiceImplTest {
         }
 
         @Test
-        @DisplayName("отклоняет rollback как ROLLBACK_FAILED при сбое отката")
+        @DisplayName("Если cardManagementClient.rollback бросает RollbackFailureException, "
+                + "то declineReason равен ROLLBACK_FAILED")
         void shouldDeclineRollbackWhenRollbackFails() {
             // Arrange
             RollbackRequest request = new RollbackRequest(RRN, PAN, AMOUNT);
@@ -505,7 +539,8 @@ class AuthServiceImplTest {
         }
 
         @Test
-        @DisplayName("отклоняет rollback с UNKNOWN_REASON при непредвиденной ошибке")
+        @DisplayName("Если cardManagementClient.rollback бросает непредвиденное исключение "
+                + "(например IllegalStateException), то declineReason равен UNKNOWN_REASON")
         void shouldDeclineRollbackWithUnknownReason() {
             // Arrange
             RollbackRequest request = new RollbackRequest(RRN, PAN, AMOUNT);
@@ -524,7 +559,7 @@ class AuthServiceImplTest {
     class CheckAndUpdateLimits {
 
         @Test
-        @DisplayName("возвращает true, если лимит обновлён")
+        @DisplayName("Если upsert лимитов вернул 1, то checkAndUpdateLimits возвращает true")
         void shouldReturnTrueWhenUpsertSucceeded() {
             // Arrange
             when(limitUsageRepository.upsertLimitUsage(any(), any(), any(), any(), any())).thenReturn(1);
@@ -537,7 +572,7 @@ class AuthServiceImplTest {
         }
 
         @Test
-        @DisplayName("возвращает false, если upsert не затронул строки")
+        @DisplayName("Если upsert лимитов вернул 0, то checkAndUpdateLimits возвращает false")
         void shouldReturnFalseWhenUpsertAffectedZeroRows() {
             // Arrange
             when(limitUsageRepository.upsertLimitUsage(any(), any(), any(), any(), any())).thenReturn(0);

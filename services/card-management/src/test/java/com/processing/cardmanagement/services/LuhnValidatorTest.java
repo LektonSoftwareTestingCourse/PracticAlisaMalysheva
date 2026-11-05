@@ -12,7 +12,7 @@ class LuhnValidatorTest {
     private final LuhnValidator validator = new LuhnValidator();
 
     @ParameterizedTest
-    @DisplayName("признаёт Luhn-валидные PAN")
+    @DisplayName("Если PAN равен 79927398713 или 4000008170058502, то алгоритм Луна признаёт его валидным")
     @ValueSource(strings = {
             "79927398713",
             "4000008170058502"
@@ -22,7 +22,7 @@ class LuhnValidatorTest {
     }
 
     @ParameterizedTest
-    @DisplayName("отклоняет Luhn-невалидные PAN")
+    @DisplayName("Если PAN равен 79927398714, 4000001234567890 или 1234, то алгоритм Луна признаёт его невалидным")
     @ValueSource(strings = {
             "79927398714",
             "4000001234567890",
@@ -33,7 +33,8 @@ class LuhnValidatorTest {
     }
 
     @Test
-    @DisplayName("генерирует Luhn-валидный PAN с заданным BIN-префиксом")
+    @DisplayName("Если генерируется PAN с BIN-префиксом 400000, то PAN начинается с 400000, имеет длину 16 и является валидным по"
+            + " алгоритму Луна")
     void shouldGenerateValidPanForBin() {
         // Act
         String pan = validator.generatePan("400000");

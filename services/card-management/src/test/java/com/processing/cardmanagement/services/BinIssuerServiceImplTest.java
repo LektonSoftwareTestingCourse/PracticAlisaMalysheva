@@ -36,7 +36,7 @@ class BinIssuerServiceImplTest {
     }
 
     @Test
-    @DisplayName("возвращает issuerId для известного BIN")
+    @DisplayName("Если в репозитории найден маппинг BIN 400000 с issuerId ISS001, то getIssuerId возвращает ISS001")
     void shouldReturnIssuerIdForKnownBin() {
         when(repository.findByBin(BIN)).thenReturn(Optional.of(new BinIssuer(BIN, ISSUER_ID)));
 
@@ -44,7 +44,7 @@ class BinIssuerServiceImplTest {
     }
 
     @Test
-    @DisplayName("бросает BinNotFoundException для неизвестного BIN")
+    @DisplayName("Если маппинг BIN 400000 не найден в репозитории, то getIssuerId бросает BinNotFoundException")
     void shouldThrowWhenBinUnknown() {
         when(repository.findByBin(BIN)).thenReturn(Optional.empty());
 
@@ -52,7 +52,7 @@ class BinIssuerServiceImplTest {
     }
 
     @Test
-    @DisplayName("возвращает все BIN-маппинги")
+    @DisplayName("Если в репозитории хранится один маппинг BIN, то getAll возвращает список размером 1")
     void shouldReturnAllBins() {
         when(repository.findAll()).thenReturn(List.of(new BinIssuer(BIN, ISSUER_ID)));
 
@@ -60,7 +60,8 @@ class BinIssuerServiceImplTest {
     }
 
     @Test
-    @DisplayName("создаёт BIN-маппинг, если BIN ещё не существует")
+    @DisplayName("Если BIN 400000 ещё не существует и при сохранении возвращается маппинг с issuerId ISS001, то create возвращает"
+            + " созданный маппинг с issuerId ISS001")
     void shouldCreateBinWhenNotExists() {
         when(repository.existsByBin(BIN)).thenReturn(false);
         when(repository.save(new BinIssuer(BIN, ISSUER_ID))).thenReturn(new BinIssuer(BIN, ISSUER_ID));
@@ -71,7 +72,7 @@ class BinIssuerServiceImplTest {
     }
 
     @Test
-    @DisplayName("бросает BinAlreadyExistException, если BIN уже существует")
+    @DisplayName("Если BIN 400000 уже существует, то create бросает BinAlreadyExistException")
     void shouldThrowWhenBinAlreadyExists() {
         when(repository.existsByBin(BIN)).thenReturn(true);
 
@@ -79,7 +80,7 @@ class BinIssuerServiceImplTest {
     }
 
     @Test
-    @DisplayName("удаляет BIN-маппинг")
+    @DisplayName("Если BIN 400000 существует, то при удалении вызывается deleteByBin для этого BIN")
     void shouldDeleteExistingBin() {
         when(repository.existsByBin(BIN)).thenReturn(true);
 
@@ -89,7 +90,7 @@ class BinIssuerServiceImplTest {
     }
 
     @Test
-    @DisplayName("бросает BinNotFoundException при удалении неизвестного BIN")
+    @DisplayName("Если BIN 400000 не существует, то при удалении бросается BinNotFoundException")
     void shouldThrowWhenDeletingUnknownBin() {
         when(repository.existsByBin(BIN)).thenReturn(false);
 

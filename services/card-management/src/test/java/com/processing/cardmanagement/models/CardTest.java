@@ -20,7 +20,8 @@ class CardTest {
     private static final BigDecimal MONTHLY = new BigDecimal("1000");
 
     @Test
-    @DisplayName("создаёт резервирование для активной карты с достаточными средствами")
+    @DisplayName("Если карта активна, имеет баланс 1000 и резервируется сумма 100 с RRN001, то создаётся резервирование с PAN"
+            + " карты, суммой 100 и статусом RESERVED")
     void shouldCreateReservationWhenCardActiveAndFundsAvailable() {
         // Act
         Reservation reservation = card().startReservation(new BigDecimal("100"), "RRN001");
@@ -32,7 +33,7 @@ class CardTest {
     }
 
     @Test
-    @DisplayName("бросает исключение при резервировании на неактивной карте")
+    @DisplayName("Если карта имеет статус BLOCKED, то при резервировании суммы 100 с RRN001 бросается IllegalStateException")
     void shouldRejectReservationWhenCardNotActive() {
         // Act + Assert
         assertThatThrownBy(() -> cardWithStatus(CardStatus.BLOCKED).startReservation(new BigDecimal("100"), "RRN001"))
@@ -40,7 +41,8 @@ class CardTest {
     }
 
     @Test
-    @DisplayName("бросает InsufficientFundsException при нехватке средств")
+    @DisplayName("Если активная карта имеет баланс 1000, а резервируется сумма 5000, превышающая баланс, то бросается"
+            + " InsufficientFundsException")
     void shouldRejectReservationWhenFundsInsufficient() {
         // Act + Assert
         assertThatThrownBy(() -> card().startReservation(new BigDecimal("5000"), "RRN001"))
@@ -48,7 +50,7 @@ class CardTest {
     }
 
     @Test
-    @DisplayName("уменьшает баланс при резервировании")
+    @DisplayName("Если на карту с балансом 1000 применяется резервирование на сумму 200, то доступный баланс становится 800")
     void shouldDecreaseBalanceWithReservation() {
         // Arrange
         Reservation reservation = new Reservation(PAN, new BigDecimal("200"), "RRN001");
@@ -61,7 +63,8 @@ class CardTest {
     }
 
     @Test
-    @DisplayName("бросает исключение, если PAN резервирования не совпадает с картой")
+    @DisplayName("Если PAN резервирования 1111111111111111 не совпадает с PAN карты, то при применении резервирования бросается"
+            + " IllegalArgumentException")
     void shouldRejectReservationWithDifferentPan() {
         // Arrange
         Reservation reservation = new Reservation("1111111111111111", new BigDecimal("200"), "RRN001");
@@ -72,7 +75,8 @@ class CardTest {
     }
 
     @Test
-    @DisplayName("увеличивает баланс при возврате средств")
+    @DisplayName("Если на карту с балансом 1000 применяется откат резервирования на сумму 200, то доступный баланс становится"
+            + " 1200")
     void shouldIncreaseBalanceWithRollback() {
         // Arrange
         Reservation reservation = new Reservation(PAN, new BigDecimal("200"), "RRN001");
@@ -86,7 +90,7 @@ class CardTest {
     }
 
     @Test
-    @DisplayName("помечает карту как удалённую")
+    @DisplayName("Если карту пометить как удалённую, то её статус становится DELETED")
     void shouldMarkCardAsDeleted() {
         // Act
         Card deleted = card().deleted();
@@ -96,7 +100,7 @@ class CardTest {
     }
 
     @Test
-    @DisplayName("бросает исключение при повторном удалении")
+    @DisplayName("Если карта уже имеет статус DELETED, то при повторном удалении бросается IllegalStateException")
     void shouldRejectDeletingAlreadyDeletedCard() {
         // Act + Assert
         assertThatThrownBy(() -> cardWithStatus(CardStatus.DELETED).deleted())
@@ -104,7 +108,8 @@ class CardTest {
     }
 
     @Test
-    @DisplayName("обновляет данные карты")
+    @DisplayName("Если карте задаются статус BLOCKED, дневной лимит 50 и месячный лимит 500, то статус становится BLOCKED,"
+            + " дневной лимит 50 и месячный лимит 500")
     void shouldUpdateCardData() {
         // Act
         Card updated = card().withData(CardStatus.BLOCKED, new BigDecimal("50"), new BigDecimal("500"), BALANCE);
@@ -116,7 +121,8 @@ class CardTest {
     }
 
     @Test
-    @DisplayName("бросает исключение при отрицательном лимите")
+    @DisplayName("Если дневной лимит равен -1, то есть является отрицательным, то при обновлении данных карты бросается"
+            + " IllegalArgumentException")
     void shouldRejectNegativeLimit() {
         // Act + Assert
         assertThatThrownBy(() -> card().withData(CardStatus.ACTIVE, new BigDecimal("-1"), MONTHLY, BALANCE))
@@ -124,7 +130,8 @@ class CardTest {
     }
 
     @Test
-    @DisplayName("бросает исключение, если дневной лимит больше месячного")
+    @DisplayName("Если дневной лимит 1000 больше месячного лимита 500, то при обновлении данных карты бросается"
+            + " IllegalArgumentException")
     void shouldRejectDailyLimitLargerThanMonthly() {
         // Act + Assert
         assertThatThrownBy(() -> card().withData(CardStatus.ACTIVE, new BigDecimal("1000"), new BigDecimal("500"), BALANCE))
@@ -132,7 +139,7 @@ class CardTest {
     }
 
     @Test
-    @DisplayName("запрещает операции с неактивной картой через checkStatusOrThrow")
+    @DisplayName("Если карта имеет статус INACTIVE, то при вызове checkStatusOrThrow бросается IllegalStateException")
     void shouldRejectOperationOnInactiveCard() {
         // Act + Assert
         assertThatThrownBy(() -> cardWithStatus(CardStatus.INACTIVE).checkStatusOrThrow())
@@ -140,7 +147,8 @@ class CardTest {
     }
 
     @Test
-    @DisplayName("создаёт карту из черновика")
+    @DisplayName("Если из черновика с BIN 400000, эмитентом ISS001 и сроком 3 года создаётся карта, то PAN равен переданному,"
+            + " статус ACTIVE, issuerId ISS001, срок истечения через 3 года и доступный баланс 1000")
     void shouldCreateCardFromDraft() {
         // Arrange
         CardDraft draft = new CardDraft(
@@ -158,7 +166,8 @@ class CardTest {
     }
 
     @Test
-    @DisplayName("создаёт копию карты с новым PAN")
+    @DisplayName("Если карта копируется с новым PAN 4276001234567890, то PAN копии равен новому значению и идентификатор копии"
+            + " отличается от исходного")
     void shouldCopyWithNewPan() {
         // Act
         Card copy = card().copyWithPan("4276001234567890");
@@ -169,7 +178,8 @@ class CardTest {
     }
 
     @Test
-    @DisplayName("не позволяет откатить уже откаченное резервирование")
+    @DisplayName("Если резервирование уже откачено и предпринимается повторный откат на сумму 200, то бросается"
+            + " RollbackAlreadySatisfiedException")
     void shouldRejectRollbackOfRolledBackReservation() {
         // Arrange
         Reservation reservation = new Reservation(PAN, new BigDecimal("200"), "RRN001");
