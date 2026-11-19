@@ -13,7 +13,7 @@ else
 endif
 
 # Специальные цели
-.PHONY: run stop clean build status logs smoke smoke-win test lint
+.PHONY: run stop clean build status logs smoke smoke-win test lint api-test
 .PHONY: mvn-all mvn-clean mvn-test mvn-lint mvn-service
 .PHONY: npm-install npm-lint npm-test npm-build
 
@@ -78,6 +78,9 @@ smoke:
 test: mvn-test npm-test
 
 lint: mvn-lint npm-lint
+
+api-test:
+	$(MVN) -P api-tests test
 
 # Maven
 mvn-all:

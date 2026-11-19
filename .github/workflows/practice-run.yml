@@ -100,7 +100,7 @@ jobs:
       if: always()
       run: docker compose down -v
 
-  e2e-tests:
+  api-tests:
     if: github.event.inputs.practice == '5'
     runs-on: ubuntu-latest
     steps:
@@ -112,7 +112,7 @@ jobs:
       env:
         OWNER: ${{ github.repository_owner }}
 
-    - name: Set up JDK 21 for E2E
+    - name: Set up JDK 21 for API tests
       uses: actions/setup-java@v5
       with:
         java-version: '21'
@@ -171,8 +171,8 @@ jobs:
         done
         sleep 15
 
-    - name: Run e2e tests
-      run: mvn -f services/pom.xml -pl e2e-tests -am test -DskipE2eTests=false
+    - name: Run API tests (practice 5)
+      run: mvn -f services/pom.xml -P api-tests test
 
     - name: Show logs on failure
       if: failure()

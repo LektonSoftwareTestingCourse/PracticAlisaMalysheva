@@ -106,6 +106,15 @@
 
 
         <profile>
+            <id>api-tests</id>
+            <modules>
+                <module>common</module>
+                <module>api-tests</module>
+            </modules>
+        </profile>
+
+
+        <profile>
             <id>authorization</id>
             <modules>
                 <module>common</module>
