@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Gateway health",
+  "description": "Ответ GET /health Gateway (api-spec.md, раздел Health)",
+  "type": "object",
+  "required": ["status", "service", "version", "services"],
+  "properties": {
+    "status": { "type": "string" },
+    "service": { "type": "string" },
+    "version": { "type": "string" },
+    "services": {
+      "type": "object",
+      "required": ["switch", "authorization", "cardManagement", "logger"],
+      "additionalProperties": { "type": "string" }
+    }
+  }
+}
