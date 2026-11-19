@@ -12,36 +12,36 @@
 контроллеров сервисов и конфигурации маршрутов Gateway (`services/gateway/.../application.yml`).
 Источники не совпадают — расхождения зафиксированы в разделе 4.
 
-| Эндпоинт | Проверяемые статус-коды | Кол-во проверок | Статус |
-|---|---|---|---|
-| `GET /health` (Gateway) | 200 | 3 | ✅ |
-| `POST /api/cards` | 201, 400 | 7 | ✅ |
-| `GET /api/cards/{pan}` | 200, 400, 404 (+ `X-Cache`) | 4 | ✅ |
-| `GET /api/cards` | 200, 400 | 3 | ✅ |
-| `PATCH /api/cards/{pan}` | 200, 404 | 2 | ✅ |
-| `DELETE /api/cards/{pan}` | 204, 404 | 1 | ✅ |
-| `POST /api/cards/{pan}/reserve` | 200, 400, 402, 409 | 5 | ✅ |
-| `POST /api/cards/{pan}/rollback` | 200, 404, 409 | 4 | ✅ |
-| `POST /api/cards/generate` | 201, 400 | 6 | ✅ |
-| `POST /api/cards/bulk-update` | 200 | 1 | ✅ |
-| `GET /api/bins` (CMS, не через Gateway) | 200 | 1 | ✅ |
-| `GET /api/bins/{bin}` | 200, 404 | 2 | ✅ |
-| `POST /api/bins` | 201, 409 | 2 | ✅ |
-| `DELETE /api/bins/{bin}` | 204 | 1 | ✅ |
-| `POST /api/transactions` (Gateway) | 200 (APPROVED + отказы 00/05/14/51/54/61) | 8 | ✅ |
-| `POST /api/internal/authorize` | 200, 400, 403, 404, 422 | 19 | ✅ |
-| `POST /api/internal/rollback` | 200, 400, 404, 409 | 4 | ✅ |
-| `GET /api/transactions/search` | 200, 400 | 13 | ✅ |
-| `GET /api/transactions/export` | 200, 400 | 1 | ✅ |
-| `GET /api/dashboard/stats` | 200 | 1 | ✅ |
-| `GET /api/dashboard/recent` | 200, 400 | 4 | ✅ |
-| `GET /api/dashboard/charts` | 200, 400 | 2 | ✅ |
-| `POST /api/simulator/terminal/run` | 200, 400 | 5 | ✅ |
-| `POST /api/simulator/merchant/run` | 200, 400 | 2 | ✅ |
-| `POST /api/internal/log` | 201, 200, 400, 409 | 9 | ✅ |
-| `GET /api/notifications` (async-эффект) | 200 | 1 | ✅ |
-| Сквозная цепочка + асинхронность | — | 3 | ✅ |
-| **Итого** | — | **~90 проверок** | — |
+| Эндпоинт                                | Проверяемые статус-коды                   | Кол-во проверок  | Статус |
+|-----------------------------------------|-------------------------------------------|------------------|--------|
+| `GET /health` (Gateway)                 | 200                                       | 3                | ✅      |
+| `POST /api/cards`                       | 201, 400                                  | 7                | ✅      |
+| `GET /api/cards/{pan}`                  | 200, 400, 404 (+ `X-Cache`)               | 4                | ✅      |
+| `GET /api/cards`                        | 200, 400                                  | 3                | ✅      |
+| `PATCH /api/cards/{pan}`                | 200, 404                                  | 2                | ✅      |
+| `DELETE /api/cards/{pan}`               | 204, 404                                  | 1                | ✅      |
+| `POST /api/cards/{pan}/reserve`         | 200, 400, 402, 409                        | 5                | ✅      |
+| `POST /api/cards/{pan}/rollback`        | 200, 404, 409                             | 4                | ✅      |
+| `POST /api/cards/generate`              | 201, 400                                  | 6                | ✅      |
+| `POST /api/cards/bulk-update`           | 200                                       | 1                | ✅      |
+| `GET /api/bins` (CMS, не через Gateway) | 200                                       | 1                | ✅      |
+| `GET /api/bins/{bin}`                   | 200, 404                                  | 2                | ✅      |
+| `POST /api/bins`                        | 201, 409                                  | 2                | ✅      |
+| `DELETE /api/bins/{bin}`                | 204                                       | 1                | ✅      |
+| `POST /api/transactions` (Gateway)      | 200 (APPROVED + отказы 00/05/14/51/54/61) | 8                | ✅      |
+| `POST /api/internal/authorize`          | 200, 400, 403, 404, 422                   | 19               | ✅      |
+| `POST /api/internal/rollback`           | 200, 400, 404, 409                        | 4                | ✅      |
+| `GET /api/transactions/search`          | 200, 400                                  | 13               | ✅      |
+| `GET /api/transactions/export`          | 200, 400                                  | 1                | ✅      |
+| `GET /api/dashboard/stats`              | 200                                       | 1                | ✅      |
+| `GET /api/dashboard/recent`             | 200, 400                                  | 4                | ✅      |
+| `GET /api/dashboard/charts`             | 200, 400                                  | 2                | ✅      |
+| `POST /api/simulator/terminal/run`      | 200, 400                                  | 5                | ✅      |
+| `POST /api/simulator/merchant/run`      | 200, 400                                  | 2                | ✅      |
+| `POST /api/internal/log`                | 201, 200, 400, 409                        | 9                | ✅      |
+| `GET /api/notifications` (async-эффект) | 200                                       | 1                | ✅      |
+| Сквозная цепочка + асинхронность        | —                                         | 3                | ✅      |
+| **Итого**                               | —                                         | **~90 проверок** | —      |
 
 ---
 
@@ -51,15 +51,15 @@
 (`declineReason`). Часть исходов имеет совпадающие коды (05 у BLOCKED/INACTIVE),
 поэтому проверка только кода их не различает — проверяется и причина.
 
-| Исход | Код | Причина | Путь достижения | Способ подготовки данных | Статус |
-|---|---|---|---|---|---|
-| CARD_NOT_FOUND | 14 | CARD_NOT_FOUND | по данным запроса (валидный PAN, карты нет) | PAN = bin + 10 случайных цифр | ✅ |
-| UNKNOWN_BIN | 14 | CARD_NOT_FOUND | по данным запроса (BIN не маршрутизируется) | PAN с BIN 999999 | ✅ |
-| INSUFFICIENT_FUNDS | 51 | INSUFFICIENT_FUNDS | состояние карты (остаток мал) | карта `initialBalance=100`, сумма 1000 | ✅ |
-| CARD_BLOCKED | 05 | CARD_BLOCKED | состояние карты | PATCH статус BLOCKED | ✅ |
-| CARD_INACTIVE | 05 | CARD_INACTIVE | состояние карты | PATCH статус INACTIVE | ✅ |
-| CARD_EXPIRED | 54 | CARD_EXPIRED | состояние карты | PATCH статус EXPIRED | ✅ |
-| EXCEEDS_AMOUNT_LIMIT | 61 | EXCEEDS_AMOUNT_LIMIT | состояние карты (лимит) + данные запроса (сумма) | карта `dailyLimit=100`, остаток 100000, сумма 500 | ✅ |
+| Исход                | Код | Причина              | Путь достижения                                  | Способ подготовки данных                          | Статус |
+|----------------------|-----|----------------------|--------------------------------------------------|---------------------------------------------------|--------|
+| CARD_NOT_FOUND       | 14  | CARD_NOT_FOUND       | по данным запроса (валидный PAN, карты нет)      | PAN = bin + 10 случайных цифр                     | ✅      |
+| UNKNOWN_BIN          | 14  | CARD_NOT_FOUND       | по данным запроса (BIN не маршрутизируется)      | PAN с BIN 999999                                  | ✅      |
+| INSUFFICIENT_FUNDS   | 51  | INSUFFICIENT_FUNDS   | состояние карты (остаток мал)                    | карта `initialBalance=100`, сумма 1000            | ✅      |
+| CARD_BLOCKED         | 05  | CARD_BLOCKED         | состояние карты                                  | PATCH статус BLOCKED                              | ✅      |
+| CARD_INACTIVE        | 05  | CARD_INACTIVE        | состояние карты                                  | PATCH статус INACTIVE                             | ✅      |
+| CARD_EXPIRED         | 54  | CARD_EXPIRED         | состояние карты                                  | PATCH статус EXPIRED                              | ✅      |
+| EXCEEDS_AMOUNT_LIMIT | 61  | EXCEEDS_AMOUNT_LIMIT | состояние карты (лимит) + данные запроса (сумма) | карта `dailyLimit=100`, остаток 100000, сумма 500 | ✅      |
 
 Различие путей: исход, достижимый состоянием карты (BLOCKED/INACTIVE/EXPIRED/
 INSUFFICIENT_FUNDS) и достижимый данными запроса (CARD_NOT_FOUND — несуществующая
@@ -78,39 +78,39 @@ BIN). Оба пути проверены (см. `TransactionsApiTest`, `Authoriz
 для каждого нарушения проверяется статус-код **и** тело ошибки, из которого видно
 нарушенное поле.
 
-| Поле | Правило | Классы | Границы | Кол-во проверок |
-|---|---|---|---|---|
-| `bin` (CreateCard) | `@Bin` (6 цифр) | валидный / короткий / буквы | 5 и 6 символов | 3 |
-| `cardholderName` | `@Pattern ^[A-Z\s\-.']+$` | валидный / строчные | — | 1 |
-| `currencyCode` | `@ExactSize(3)` + `@DigitsOnly` | валидный / короткий | 2 и 3 символа | 1 |
-| `dailyLimit`/`monthlyLimit` | `@NotNegative` | валидный / отрицательный | -1, 0 | 1 |
-| `pan` (путь) | `@Pan` (16 цифр) | валидный / короткий / длинный | 14, 15, 16, 17, 18 | 3 |
-| `count` (generate) | `@Min(1)` | валидный / 0 / отриц. | 0, -5 | 2 |
-| `bins` (generate) | `@NotEmpty` | непустой / пустой | [] | 1 |
-| `rrn` (reserve) | `@Rrn` (12 цифр) | валидный / короткий / буквы / длинный | 5, 12, 13 | 3 |
-| `mti` | `@ExactSize(4)` + `@NotBlank` | валидный / короткий / отсутствует | 3, 4 | 2 |
-| `stan` | `@ExactSize(6)` | валидный / короткий | 5 | 1 |
-| `pan` (authorize) | `@ExactSize(16)` | валидный / короткий | 4 | 1 |
-| `processingCode` | `@ExactSize(6)` | валидный / короткий | 2 | 1 |
-| `currencyCode` (authorize) | `@ExactSize(3)` | валидный / короткий | 2 | 1 |
-| `terminalId` | `@ExactSize(8)` | валидный / короткий | 4 | 1 |
-| `merchantId` | `@ExactSize(15)` | валидный / короткий | 1 | 1 |
-| `mcc` | `@ExactSize(4)` | валидный / короткий | 2 | 1 |
-| `acquirerId` | `@NotBlank` | присутствует / отсутствует | — | 1 |
-| `amount` (authorize) | `@PositiveOrZero` | валидный / отрицательный | -5 | 1 |
-| `amount` (log) | `@Positive` | валидный / 0 / отриц. | 0, -5 | 2 |
-| `stan` (log) | `@Pattern \d{6}` | валидный / буквы | — | 1 |
-| `pan` (log) | `@Pan` | валидный / короткий | 4 | 1 |
-| `mcc` (log) | `@Pattern \d{4}` | валидный / короткий | 2 | 1 |
-| `id` (log) | `@NotNull` | присутствует / отсутствует | — | 1 |
-| `limit` (search) | `@Positive` + `@Max(500)` | валидный / 0 / -1 / 501 | 0, -1, 500, 501 | 3 |
-| `offset` (search) | `@PositiveOrZero` | валидный / отриц. | -1 | 1 |
-| `status` (search) | enum | валидный / невалидный | — | 1 |
-| `dateFrom`/`dateTo` | `@ValidDateRange` | корректный / from>to | — | 1 |
-| `limit` (recent) | `@Positive` + `@Max(500)` | валидный / 0 / -1 / 501 | 0, -1, 500, 501 | 3 |
-| `granularity` (charts) | `@Pattern hour\|day` | валидный / невалидный | — | 1 |
-| `count` (simulator) | `@Min(1)` | валидный / 0 / -1 | 0, -1 | 2 |
-| `scenario` (simulator) | enum | валидный / невалидный | — | 2 |
+| Поле                        | Правило                         | Классы                                | Границы            | Кол-во проверок |
+|-----------------------------|---------------------------------|---------------------------------------|--------------------|-----------------|
+| `bin` (CreateCard)          | `@Bin` (6 цифр)                 | валидный / короткий / буквы           | 5 и 6 символов     | 3               |
+| `cardholderName`            | `@Pattern ^[A-Z\s\-.']+$`       | валидный / строчные                   | —                  | 1               |
+| `currencyCode`              | `@ExactSize(3)` + `@DigitsOnly` | валидный / короткий                   | 2 и 3 символа      | 1               |
+| `dailyLimit`/`monthlyLimit` | `@NotNegative`                  | валидный / отрицательный              | -1, 0              | 1               |
+| `pan` (путь)                | `@Pan` (16 цифр)                | валидный / короткий / длинный         | 14, 15, 16, 17, 18 | 3               |
+| `count` (generate)          | `@Min(1)`                       | валидный / 0 / отриц.                 | 0, -5              | 2               |
+| `bins` (generate)           | `@NotEmpty`                     | непустой / пустой                     | []                 | 1               |
+| `rrn` (reserve)             | `@Rrn` (12 цифр)                | валидный / короткий / буквы / длинный | 5, 12, 13          | 3               |
+| `mti`                       | `@ExactSize(4)` + `@NotBlank`   | валидный / короткий / отсутствует     | 3, 4               | 2               |
+| `stan`                      | `@ExactSize(6)`                 | валидный / короткий                   | 5                  | 1               |
+| `pan` (authorize)           | `@ExactSize(16)`                | валидный / короткий                   | 4                  | 1               |
+| `processingCode`            | `@ExactSize(6)`                 | валидный / короткий                   | 2                  | 1               |
+| `currencyCode` (authorize)  | `@ExactSize(3)`                 | валидный / короткий                   | 2                  | 1               |
+| `terminalId`                | `@ExactSize(8)`                 | валидный / короткий                   | 4                  | 1               |
+| `merchantId`                | `@ExactSize(15)`                | валидный / короткий                   | 1                  | 1               |
+| `mcc`                       | `@ExactSize(4)`                 | валидный / короткий                   | 2                  | 1               |
+| `acquirerId`                | `@NotBlank`                     | присутствует / отсутствует            | —                  | 1               |
+| `amount` (authorize)        | `@PositiveOrZero`               | валидный / отрицательный              | -5                 | 1               |
+| `amount` (log)              | `@Positive`                     | валидный / 0 / отриц.                 | 0, -5              | 2               |
+| `stan` (log)                | `@Pattern \d{6}`                | валидный / буквы                      | —                  | 1               |
+| `pan` (log)                 | `@Pan`                          | валидный / короткий                   | 4                  | 1               |
+| `mcc` (log)                 | `@Pattern \d{4}`                | валидный / короткий                   | 2                  | 1               |
+| `id` (log)                  | `@NotNull`                      | присутствует / отсутствует            | —                  | 1               |
+| `limit` (search)            | `@Positive` + `@Max(500)`       | валидный / 0 / -1 / 501               | 0, -1, 500, 501    | 3               |
+| `offset` (search)           | `@PositiveOrZero`               | валидный / отриц.                     | -1                 | 1               |
+| `status` (search)           | enum                            | валидный / невалидный                 | —                  | 1               |
+| `dateFrom`/`dateTo`         | `@ValidDateRange`               | корректный / from>to                  | —                  | 1               |
+| `limit` (recent)            | `@Positive` + `@Max(500)`       | валидный / 0 / -1 / 501               | 0, -1, 500, 501    | 3               |
+| `granularity` (charts)      | `@Pattern hour\|day`            | валидный / невалидный                 | —                  | 1               |
+| `count` (simulator)         | `@Min(1)`                       | валидный / 0 / -1                     | 0, -1              | 2               |
+| `scenario` (simulator)      | enum                            | валидный / невалидный                 | —                  | 2               |
 
 ---
 
@@ -120,16 +120,16 @@ BIN). Оба пути проверены (см. `TransactionsApiTest`, `Authoriz
 маршруты Gateway). Экспериментальное подтверждение в этой среде не выполнялось
 (см. раздел 7), поэтому классификация — по анализу кода.
 
-| Декларировано | Наблюдается | Источник декларации | Классификация |
-|---|---|---|---|
-| `expiryDate` карты — формат `MMyy` (например `1228`) | `CardModel.expiryDate` типа `YearMonth`, сериализуется Jackson в ISO `YYYY-MM` | api-spec.md, раздел Card | Расхождение формата поля |
-| `/health` — `"status": "ok"` (нижний регистр) | `HealthStatus` enum сериализуется как `OK`/`DOWN` | api-spec.md, раздел Health | Расхождение значения/регистра |
-| Эндпоинты `/api/bins/*` доступны через Gateway | Контроллер `BinIssuerController` есть, но в маршрутах Gateway маршрут `/api/bins/**` отсутствует — доступ только напрямую к CMS | CardController (BinIssuerController) | Расхождение: контроллер есть, маршрут не настроен |
-| Эндпоинт `GET /api/notifications` | Есть в Notification Service, но не маршрутизируется Gateway | NotificationController | Расхождение: нет маршрута Gateway |
-| `POST /api/cards` — ошибка `409` при существующем PAN | PAN генерируется автоматически, воспроизвести 409 через API нельзя; 409 достижим только внутренне | api-spec.md | Известное ограничение: проверка 409 на create не покрыта (см. раздел 5) |
-| `POST /api/transactions` — ошибки `400`/`503` по HTTP | Через Gateway все бизнес-отказы возвращаются HTTP 200, исход в теле (`RouteController` всегда 200) | api-spec.md | Расхождение модели ошибок: отказы в теле, а не в HTTP-статусе |
-| Ответный `mti` одобренной транзакции — `0110` | Реализация возвращает `request.mti()` = `0100` (`AuthorizationResponse.approved`) | api-spec.md | Расхождение значения поля |
-| `AuthorizationRequest.issuerId` — необязательное поле (спец.) | В `common` поле `@NotBlank` (обязательное) | api-spec.md / AuthorizationRequest | Расхождение обязательности |
+| Декларировано                                                 | Наблюдается                                                                                                                     | Источник декларации                  | Классификация                                                           |
+|---------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|--------------------------------------|-------------------------------------------------------------------------|
+| `expiryDate` карты — формат `MMyy` (например `1228`)          | `CardModel.expiryDate` типа `YearMonth`, сериализуется Jackson в ISO `YYYY-MM`                                                  | api-spec.md, раздел Card             | Расхождение формата поля                                                |
+| `/health` — `"status": "ok"` (нижний регистр)                 | `HealthStatus` enum сериализуется как `OK`/`DOWN`                                                                               | api-spec.md, раздел Health           | Расхождение значения/регистра                                           |
+| Эндпоинты `/api/bins/*` доступны через Gateway                | Контроллер `BinIssuerController` есть, но в маршрутах Gateway маршрут `/api/bins/**` отсутствует — доступ только напрямую к CMS | CardController (BinIssuerController) | Расхождение: контроллер есть, маршрут не настроен                       |
+| Эндпоинт `GET /api/notifications`                             | Есть в Notification Service, но не маршрутизируется Gateway                                                                     | NotificationController               | Расхождение: нет маршрута Gateway                                       |
+| `POST /api/cards` — ошибка `409` при существующем PAN         | PAN генерируется автоматически, воспроизвести 409 через API нельзя; 409 достижим только внутренне                               | api-spec.md                          | Известное ограничение: проверка 409 на create не покрыта (см. раздел 5) |
+| `POST /api/transactions` — ошибки `400`/`503` по HTTP         | Через Gateway все бизнес-отказы возвращаются HTTP 200, исход в теле (`RouteController` всегда 200)                              | api-spec.md                          | Расхождение модели ошибок: отказы в теле, а не в HTTP-статусе           |
+| Ответный `mti` одобренной транзакции — `0110`                 | Реализация возвращает `request.mti()` = `0100` (`AuthorizationResponse.approved`)                                               | api-spec.md                          | Расхождение значения поля                                               |
+| `AuthorizationRequest.issuerId` — необязательное поле (спец.) | В `common` поле `@NotBlank` (обязательное)                                                                                      | api-spec.md / AuthorizationRequest   | Расхождение обязательности                                              |
 
 ---
 
@@ -180,12 +180,12 @@ Awaitility с явными границами, композитные матче
 Ниже — три запланированных эксперимента намеренной поломки (мутации) и ожидаемый
 результат:
 
-| Тест | Внесённое изменение | Ожидаемый результат |
-|---|---|---|
-| `authorize_approvedCard_returns200_approved` | Ожидание `responseCode` изменить с `"00"` на `"99"` | Тест краснеет: `expect responseCode to be "99"` при фактическом `"00"` |
-| `CardsValidationApiTest.createCard invalid cardholder` | Убрать проверку `message containsString("uppercase")` | Не падает на теле — подтверждает важность проверки тела, а не только статуса |
-| `reserve_insufficientFunds_returns402` | Ожидание статуса изменить с `402` на `200` | Тест краснеет: фактический `402` |
-| Мутационная проверка идемпотентности | В `IdempotencyApiTest` отключить дедупликацию (изменить ожидание повторной доставки с `200` на `201`) | Тест краснеет, пока дедупликация активна; подтверждает, что проверка реально ловит дубликат |
+| Тест                                                   | Внесённое изменение                                                                                   | Ожидаемый результат                                                                         |
+|--------------------------------------------------------|-------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
+| `authorize_approvedCard_returns200_approved`           | Ожидание `responseCode` изменить с `"00"` на `"99"`                                                   | Тест краснеет: `expect responseCode to be "99"` при фактическом `"00"`                      |
+| `CardsValidationApiTest.createCard invalid cardholder` | Убрать проверку `message containsString("uppercase")`                                                 | Не падает на теле — подтверждает важность проверки тела, а не только статуса                |
+| `reserve_insufficientFunds_returns402`                 | Ожидание статуса изменить с `402` на `200`                                                            | Тест краснеет: фактический `402`                                                            |
+| Мутационная проверка идемпотентности                   | В `IdempotencyApiTest` отключить дедупликацию (изменить ожидание повторной доставки с `200` на `201`) | Тест краснеет, пока дедупликация активна; подтверждает, что проверка реально ловит дубликат |
 
 ---
 
